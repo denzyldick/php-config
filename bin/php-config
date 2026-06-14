@@ -1,0 +1,99 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use PhpConfig\Generator\SchemaGenerator;
+
+if (\PHP_SAPI !== 'cli') {
+    echo "This script must be run from the CLI.\n";
+    exit(1);
+}
+
+$autoloaders = [
+    __DIR__ . '/../../../vendor/autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/vendor/autoload.php',
+];
+
+$found = false;
+foreach ($autoloaders as $path) {
+    if (file_exists($path)) {
+        require $path;
+        $found = true;
+        break;
+    }
+}
+
+if (!$found) {
+    fwrite(\STDERR, "Cannot find autoload.php. Make sure dependencies are installed.\n");
+    exit(1);
+}
+
+$command = $argv[1] ?? null;
+
+if ($command === null || $command === 'help' || $command === '--help') {
+    echo "php-config - Config schema and validation tool\n\n";
+    echo "Usage:\n";
+    echo "  php-config generate:class <config-file> [options]\n\n";
+    echo "Options:\n";
+    echo "  --class=<name>      Class name (default: AppConfig)\n";
+    echo "  --namespace=<ns>    Namespace (default: App\\Config)\n";
+    echo "  --output=<dir>      Output directory (default: stdout)\n";
+    echo "\n";
+    echo "Examples:\n";
+    echo "  php-config generate:class config/database.yaml --class=DatabaseConfig\n";
+    echo "  php-config generate:class config/app.json --output=src/Config/\n";
+    exit(0);
+}
+
+if ($command === 'generate:class') {
+    $path = $argv[2] ?? null;
+
+    if ($path === null) {
+        fwrite(\STDERR, "Usage: php-config generate:class <config-file> [options]\n");
+        exit(1);
+    }
+
+    $className = 'AppConfig';
+    $namespace = 'App\\Config';
+
+    foreach (\array_slice($argv, 3) as $arg) {
+        if (str_starts_with($arg, '--class=')) {
+            $className = substr($arg, 8);
+        } elseif (str_starts_with($arg, '--namespace=')) {
+            $namespace = substr($arg, 12);
+        } elseif (str_starts_with($arg, '--output=')) {
+            $outputDir = substr($arg, 9);
+        }
+    }
+
+    $generator = new SchemaGenerator();
+
+    try {
+        $files = $generator->generateFromFile($path, $className, $namespace);
+    } catch (\Throwable $e) {
+        fwrite(\STDERR, "Error: " . $e->getMessage() . "\n");
+        exit(1);
+    }
+
+    if (isset($outputDir)) {
+        $generator->writeFiles($files, $outputDir);
+        echo "Generated " . \count($files) . " file(s) in {$outputDir}\n";
+
+        foreach ($files as $filename => $code) {
+            echo "  - {$filename}\n";
+        }
+    } else {
+        foreach ($files as $filename => $code) {
+            echo "// {$filename}\n";
+            echo $code;
+            echo "\n";
+        }
+    }
+
+    exit(0);
+}
+
+fwrite(\STDERR, "Unknown command: {$command}\n");
+exit(1);

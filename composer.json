@@ -1,0 +1,63 @@
+{
+  "name": "denzyl/php-config",
+  "description": "Schema-based config loader with validation for YAML, JSON, XML, and PHP files.",
+  "type": "library",
+  "keywords": [
+    "config",
+    "validation",
+    "yaml",
+    "json",
+    "xml",
+    "schema",
+    "dto"
+  ],
+  "homepage": "https://github.com/denzyldick/php-config",
+  "support": {
+    "issues": "https://github.com/denzyldick/php-config/issues",
+    "source": "https://github.com/denzyldick/php-config"
+  },
+  "require": {
+    "php": ">=8.2",
+    "denzyl/box": "^1.0",
+    "symfony/yaml": "^7.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.5"
+  },
+  "bin": [
+    "bin/php-config"
+  ],
+  "scripts": {
+    "format": "./mago format",
+    "format:check": "./mago format --check",
+    "lint": "./mago lint --minimum-fail-level error --minimum-report-level error",
+    "phanalist": "${PHANALIST_BIN:-phanalist} -c phanalist.yaml -s src",
+    "test": "vendor/bin/phpunit",
+    "composer:validate": "composer validate --strict",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "ci": [
+      "@composer:validate",
+      "@format:check",
+      "@lint",
+      "@phanalist",
+      "@test"
+    ]
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "PhpConfig\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\Fixtures\\": "tests/Fixtures/",
+      "Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Denzyl Dick"
+    }
+  ]
+}

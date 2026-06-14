@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <host>localhost</host>
+    <port type="int">3306</port>
+    <password>secret</password>
+    <log>
+        <level>debug</level>
+    </log>
+</config>

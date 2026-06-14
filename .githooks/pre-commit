@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+echo "Running mago format check..."
+./mago format --check || exit 1
+
+echo "Running mago lint..."
+./mago lint --minimum-fail-level error --minimum-report-level error || exit 1
+
+echo "Running PHPUnit..."
+vendor/bin/phpunit || exit 1

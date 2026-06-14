@@ -1,0 +1,5 @@
+host: localhost
+port: 123456
+password: secret
+log:
+  level: debug
