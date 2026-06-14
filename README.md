@@ -41,24 +41,82 @@ class DatabaseConfig
 }
 ```
 
-Load and validate:
+Load and validate — three ways to handle the result:
 
 ```php
 use PhpConfig\Config;
+use PhpConfig\Exception\ValidationException;
 
 $result = Config::load('config/database.yaml', DatabaseConfig::class);
 
+// 1. Unwrap — throws on failure (simplest)
+$config = $result->unwrap(); // ValidationException on error
+
+// 2. Guard — check and return early
+if ($result->isErr()) {
+    $errors = $result->exception()->getErrors();
+    // log, display, or rethrow
+}
+
+// 3. Match — handle both branches inline (functional style)
 $result->match(
-    fn(DatabaseConfig $config) => {
-        echo $config->host;        // autocomplete works
-        echo $config->log->level;  // nested, autocomplete works
-    },
-    fn(ValidationException $e) => {
-        foreach ($e->getErrors() as $error) {
-            echo "{$error->path}: {$error->message}";
-        }
-    },
+    fn(DatabaseConfig $config) => bootstrap($config),
+    fn(ValidationException $e) => handleErrors($e->getErrors()),
 );
+```
+
+### Real-world example
+
+```php
+// public/index.php
+use PhpConfig\Config;
+
+$config = Config::load('../config/app.yaml', AppConfig::class)
+    ->unwrap(); // fails hard — config errors at deploy time, not runtime
+
+$app = new App($config);
+$app->run();
+```
+
+```php
+// src/App.php
+use PhpConfig\Config;
+use PhpConfig\Exception\ValidationException;
+
+class App
+{
+    public function __construct(
+        private readonly AppConfig $config,
+    ) {}
+
+    public static function bootstrap(string $configPath): self
+    {
+        $result = Config::load($configPath, AppConfig::class);
+
+        if ($result->isErr()) {
+            $errors = $result->exception()->getErrors();
+            $messages = array_map(
+                fn($e) => "{$e->path}: {$e->message}",
+                $errors,
+            );
+            throw new \RuntimeException(
+                "Config validation failed:\n" . implode("\n", $messages),
+            );
+        }
+
+        return new self($result->unwrap());
+    }
+}
+```
+
+```php
+// config/app.yaml
+database:
+  host: localhost
+  port: 3306
+  username: root
+  password: secret
+  ssl: false
 ```
 
 ## Supported formats
