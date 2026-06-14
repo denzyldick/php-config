@@ -45,10 +45,14 @@ jobs:
             | tar xz -C /usr/local/bin
         if: ${{ matrix.php == '8.4' }}
 
-      - run: phanalist -c phanalist.yaml -s src --output-format=sarif --output-file=phanalist-results.sarif
+      - run: phanalist -c phanalist.yaml -s src --output-format=sarif > phanalist-results.sarif
         if: ${{ matrix.php == '8.4' }}
+        continue-on-error: true
 
       - uses: github/codeql-action/upload-sarif@v3
         if: ${{ matrix.php == '8.4' }}
         with:
           sarif_file: phanalist-results.sarif
+
+      - run: phanalist -c phanalist.yaml -s src
+        if: ${{ matrix.php == '8.4' }}
