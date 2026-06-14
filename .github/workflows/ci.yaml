@@ -43,12 +43,19 @@ jobs:
         run: |
           curl -sSfL https://github.com/denzyldick/phanalist/releases/latest/download/phanalist-x86_64-unknown-linux-gnu.tar.gz \
             | tar xz -C /usr/local/bin
+          phanalist --version
         if: ${{ matrix.php == '8.4' }}
 
-      - run: phanalist -c phanalist.yaml -s src --output-format=sarif --output-file=phanalist-results.sarif
+      - name: Run phanalist (SARIF for annotations)
+        run: phanalist -c phanalist.yaml -s src --output-format=sarif > phanalist-results.sarif
         if: ${{ matrix.php == '8.4' }}
+        continue-on-error: true
 
       - uses: github/codeql-action/upload-sarif@v3
         if: ${{ matrix.php == '8.4' }}
         with:
           sarif_file: phanalist-results.sarif
+
+      - name: Run phanalist (fails CI on issues)
+        run: phanalist -c phanalist.yaml -s src
+        if: ${{ matrix.php == '8.4' }}
