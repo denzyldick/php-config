@@ -176,6 +176,47 @@ foreach ($files as $filename => $code) {
 
 Nested objects produce separate class files. Types are inferred from values: `string`, `int`, `float`, `bool`, nested `object`, or `array`. All scalar fields get `#[Required]` — remove it on fields that are optional.
 
+## Static analysis
+
+This project uses [phanalist](https://github.com/denzyldick/phanalist) for static analysis.
+
+### Local
+
+```bash
+composer require --dev denzyl/phanalist
+vendor/bin/phanalist -c phanalist.yaml -s src
+```
+
+### GitHub Action
+
+Add to `.github/workflows/ci.yaml`:
+
+```yaml
+- uses: denzyldick/phanalist-action@v0.1.22
+  with:
+    src: src/
+```
+
+To fail CI on issues and upload SARIF annotations for PRs:
+
+```yaml
+- name: Install phanalist
+  run: |
+    curl -sSfL https://github.com/denzyldick/phanalist/releases/latest/download/phanalist-x86_64-unknown-linux-gnu.tar.gz \
+      | tar xz -C /usr/local/bin
+
+- name: Run phanalist (SARIF for annotations)
+  run: phanalist -c phanalist.yaml -s src --output-format=sarif > phanalist-results.sarif
+  continue-on-error: true
+
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: phanalist-results.sarif
+
+- name: Run phanalist (fails CI on issues)
+  run: phanalist -c phanalist.yaml -s src
+```
+
 ## License
 
 MIT
