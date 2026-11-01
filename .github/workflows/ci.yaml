@@ -39,18 +39,7 @@ jobs:
       - run: ./mago lint --minimum-fail-level error --minimum-report-level error
         if: ${{ matrix.php == '8.4' }}
 
-      - name: Install phanalist
-        run: |
-          curl -sSfL https://github.com/denzyldick/phanalist/releases/latest/download/phanalist-x86_64-unknown-linux-gnu.tar.gz \
-            | tar xz -C /usr/local/bin
-          phanalist --version
-        if: ${{ matrix.php == '8.4' }}
-
-      - uses: denzyldick/phanalist-action@v0.1.22
+      - uses: denzyldick/phanalist-action@v1
         if: ${{ matrix.php == '8.4' }}
         with:
-          src: src/
-
-      - name: Run phanalist (fails CI on issues)
-        run: phanalist -c phanalist.yaml -s src
-        if: ${{ matrix.php == '8.4' }}
+          src: src
