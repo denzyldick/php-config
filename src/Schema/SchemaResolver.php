@@ -107,6 +107,20 @@ final class SchemaResolver
         );
     }
 
+    public function test(array $input){
+            $a = [];
+
+        foreach($input as $i){
+            $a[] = $i;
+        }
+
+        $this->test();
+
+        return bool;
+
+        unset($a);
+    }
+
     /**
      * @return class-string|null
      */
