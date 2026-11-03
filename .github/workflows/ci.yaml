@@ -9,6 +9,8 @@ on:
 permissions:
   security-events: write
   contents: read
+  checks: read
+  pull-requests: write
 
 jobs:
   ci:
@@ -39,7 +41,8 @@ jobs:
       - run: ./mago lint --minimum-fail-level error --minimum-report-level error
         if: ${{ matrix.php == '8.4' }}
 
-      - uses: denzyldick/phanalist-action@v1
+      - uses: denzyldick/phanalist-action@feat/pr-comment
         if: ${{ matrix.php == '8.4' }}
         with:
           src: src
+          post_pr_comment: true
